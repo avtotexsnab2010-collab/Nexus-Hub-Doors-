@@ -1,0 +1,587 @@
+—-This is a Doors script that includes a speed boost, flashlight-less light, anti-scream ESP, doors, gold items, books, etc.
+-- Nexus Hub V.1 - DOORS Edition (Compact + Confirmation Dialog)
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Удаление старого UI
+if CoreGui:FindFirstChild("NexusHubDoorsCompact") then
+    CoreGui.NexusHubDoorsCompact:Destroy()
+end
+
+-- ScreenGui Контейнер
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NexusHubDoorsCompact"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+---------------------------------------------------------
+-- КНОПКА ОТКРЫТИЯ/ЗАКРЫТИЯ (Компактная, закруглённая)
+---------------------------------------------------------
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(60, 5, 5)
+ToggleButton.Position = UDim2.new(0.02, 0, 0.2, 0)
+ToggleButton.Size = UDim2.new(0, 65, 0, 65)
+ToggleButton.AutoButtonColor = false
+ToggleButton.Text = ""
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 12)
+ToggleCorner.Parent = ToggleButton
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(120, 20, 20)
+ToggleStroke.Thickness = 1.5
+ToggleStroke.Parent = ToggleButton
+
+-- Оформление текста кнопки (Nexus II hub)
+local BtnNexus = Instance.new("TextLabel")
+BtnNexus.Parent = ToggleButton
+BtnNexus.BackgroundTransparency = 1
+BtnNexus.Position = UDim2.new(0, 0, 0, 4)
+BtnNexus.Size = UDim2.new(1, 0, 0, 16)
+BtnNexus.Font = Enum.Font.SourceSansBold
+BtnNexus.Text = "Nexus"
+BtnNexus.TextColor3 = Color3.fromRGB(200, 200, 200)
+BtnNexus.TextSize = 14
+
+local BtnV1 = Instance.new("TextLabel")
+BtnV1.Parent = ToggleButton
+BtnV1.BackgroundTransparency = 1
+BtnV1.Position = UDim2.new(0, 0, 0, 20)
+BtnV1.Size = UDim2.new(1, 0, 0, 18)
+BtnV1.Font = Enum.Font.SourceSansBold
+BtnV1.Text = "II V.1"
+BtnV1.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnV1.TextSize = 13
+
+local BtnHub = Instance.new("TextLabel")
+BtnHub.Parent = ToggleButton
+BtnHub.BackgroundTransparency = 1
+BtnHub.Position = UDim2.new(0, 0, 0, 38)
+BtnHub.Size = UDim2.new(1, 0, 0, 22)
+BtnHub.Font = Enum.Font.SourceSansBold
+BtnHub.Text = "hub"
+BtnHub.TextColor3 = Color3.fromRGB(255, 0, 0)
+BtnHub.TextSize = 18
+
+---------------------------------------------------------
+-- ГЛАВНОЕ МЕНЮ (Уменьшенное)
+---------------------------------------------------------
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(70, 3, 3)
+MainFrame.Position = UDim2.new(0.5, -220, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 440, 0, 280)
+MainFrame.Visible = true
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(40, 0, 0)
+MainStroke.Thickness = 2
+MainStroke.Parent = MainFrame
+
+-- Функция перетаскивания
+local function makeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = gui.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+makeDraggable(MainFrame)
+makeDraggable(ToggleButton)
+
+-- Шапка Меню
+local Header = Instance.new("Frame")
+Header.Parent = MainFrame
+Header.BackgroundTransparency = 1
+Header.Size = UDim2.new(1, 0, 0, 40)
+
+local LogoLabel = Instance.new("TextLabel")
+LogoLabel.Parent = Header
+LogoLabel.BackgroundTransparency = 1
+LogoLabel.Position = UDim2.new(0, 12, 0, 4)
+LogoLabel.Size = UDim2.new(0, 200, 0, 20)
+LogoLabel.Font = Enum.Font.SourceSansBold
+LogoLabel.Text = "II Nexus Hub"
+LogoLabel.TextColor3 = Color3.fromRGB(190, 190, 190)
+LogoLabel.TextSize = 18
+LogoLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local SubLabel = Instance.new("TextLabel")
+SubLabel.Parent = Header
+SubLabel.BackgroundTransparency = 1
+SubLabel.Position = UDim2.new(0, 12, 0, 22)
+SubLabel.Size = UDim2.new(0, 150, 0, 15)
+SubLabel.Font = Enum.Font.SourceSansBold
+SubLabel.Text = "DOORS"
+SubLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubLabel.TextSize = 12
+SubLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+---------------------------------------------------------
+-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ ЗАКРЫТИЯ (Confirm Dialog)
+---------------------------------------------------------
+local ConfirmOverlay = Instance.new("Frame")
+ConfirmOverlay.Name = "ConfirmOverlay"
+ConfirmOverlay.Parent = MainFrame
+ConfirmOverlay.BackgroundColor3 = Color3.fromRGB(30, 2, 2)
+ConfirmOverlay.BackgroundTransparency = 0.2
+ConfirmOverlay.Size = UDim2.new(1, 0, 1, 0)
+ConfirmOverlay.Visible = false
+ConfirmOverlay.ZIndex = 10
+
+local ConfirmBox = Instance.new("Frame")
+ConfirmBox.Parent = ConfirmOverlay
+ConfirmBox.BackgroundColor3 = Color3.fromRGB(55, 5, 5)
+ConfirmBox.Position = UDim2.new(0.5, -150, 0.5, -65)
+ConfirmBox.Size = UDim2.new(0, 300, 0, 130)
+ConfirmBox.ZIndex = 11
+
+local ConfirmCorner = Instance.new("UICorner")
+ConfirmCorner.CornerRadius = UDim.new(0, 10)
+ConfirmCorner.Parent = ConfirmBox
+
+local ConfirmStroke = Instance.new("UIStroke")
+ConfirmStroke.Color = Color3.fromRGB(120, 20, 20)
+ConfirmStroke.Thickness = 2
+ConfirmStroke.Parent = ConfirmBox
+
+local ConfirmText = Instance.new("TextLabel")
+ConfirmText.Parent = ConfirmBox
+ConfirmText.BackgroundTransparency = 1
+ConfirmText.Position = UDim2.new(0, 10, 0, 15)
+ConfirmText.Size = UDim2.new(1, -20, 0, 50)
+ConfirmText.Font = Enum.Font.SourceSansBold
+ConfirmText.Text = "Are you sure you want to close this hub?"
+ConfirmText.TextColor3 = Color3.fromRGB(240, 240, 240)
+ConfirmText.TextSize = 15
+ConfirmText.TextWrapped = true
+ConfirmText.ZIndex = 12
+
+-- Кнопка YES (Да)
+local YesBtn = Instance.new("TextButton")
+YesBtn.Parent = ConfirmBox
+YesBtn.BackgroundColor3 = Color3.fromRGB(140, 20, 20)
+YesBtn.Position = UDim2.new(0, 25, 0, 80)
+YesBtn.Size = UDim2.new(0, 110, 0, 32)
+YesBtn.Font = Enum.Font.SourceSansBold
+YesBtn.Text = "Yes"
+YesBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+YesBtn.TextSize = 14
+YesBtn.ZIndex = 12
+
+local YesCorner = Instance.new("UICorner")
+YesCorner.CornerRadius = UDim.new(0, 6)
+YesCorner.Parent = YesBtn
+
+-- Кнопка NO (Нет)
+local NoBtn = Instance.new("TextButton")
+NoBtn.Parent = ConfirmBox
+NoBtn.BackgroundColor3 = Color3.fromRGB(70, 15, 15)
+NoBtn.Position = UDim2.new(1, -135, 0, 80)
+NoBtn.Size = UDim2.new(0, 110, 0, 32)
+NoBtn.Font = Enum.Font.SourceSansBold
+NoBtn.Text = "No"
+NoBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+NoBtn.TextSize = 14
+NoBtn.ZIndex = 12
+
+local NoCorner = Instance.new("UICorner")
+NoCorner.CornerRadius = UDim.new(0, 6)
+NoCorner.Parent = NoBtn
+
+-- Обработка кнопок подтверждения
+YesBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy() -- Полное закрытие хаба
+end)
+
+NoBtn.MouseButton1Click:Connect(function()
+    ConfirmOverlay.Visible = false -- Возврат в меню
+end)
+
+-- Классический крестик закрытия
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Parent = Header
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Position = UDim2.new(1, -32, 0, 8)
+CloseBtn.Size = UDim2.new(0, 22, 0, 22)
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+CloseBtn.TextSize = 16
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ConfirmOverlay.Visible = true -- Показываем экранчик с вопросом
+end)
+
+ToggleButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+---------------------------------------------------------
+-- ВКЛАДКИ (Main и ESP)
+---------------------------------------------------------
+local TabContainer = Instance.new("Frame")
+TabContainer.Parent = MainFrame
+TabContainer.BackgroundTransparency = 1
+TabContainer.Position = UDim2.new(0, 10, 0, 50)
+TabContainer.Size = UDim2.new(0, 105, 1, -60)
+
+local TabMainBtn = Instance.new("TextButton")
+TabMainBtn.Parent = TabContainer
+TabMainBtn.BackgroundColor3 = Color3.fromRGB(50, 2, 2)
+TabMainBtn.Position = UDim2.new(0, 0, 0, 0)
+TabMainBtn.Size = UDim2.new(1, 0, 0, 32)
+TabMainBtn.Font = Enum.Font.SourceSansBold
+TabMainBtn.Text = "Main"
+TabMainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+TabMainBtn.TextSize = 14
+
+local TabMainCorner = Instance.new("UICorner")
+TabMainCorner.CornerRadius = UDim.new(0, 8)
+TabMainCorner.Parent = TabMainBtn
+
+local TabEspBtn = Instance.new("TextButton")
+TabEspBtn.Parent = TabContainer
+TabEspBtn.BackgroundColor3 = Color3.fromRGB(35, 2, 2)
+TabEspBtn.Position = UDim2.new(0, 0, 0, 40)
+TabEspBtn.Size = UDim2.new(1, 0, 0, 32)
+TabEspBtn.Font = Enum.Font.SourceSansBold
+TabEspBtn.Text = "ESP"
+TabEspBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+TabEspBtn.TextSize = 14
+
+local TabEspCorner = Instance.new("UICorner")
+TabEspCorner.CornerRadius = UDim.new(0, 8)
+TabEspCorner.Parent = TabEspBtn
+
+---------------------------------------------------------
+-- СТРАНИЦЫ
+---------------------------------------------------------
+local MainPage = Instance.new("ScrollingFrame")
+MainPage.Parent = MainFrame
+MainPage.BackgroundTransparency = 1
+MainPage.Position = UDim2.new(0, 125, 0, 50)
+MainPage.Size = UDim2.new(1, -135, 1, -60)
+MainPage.CanvasSize = UDim2.new(0, 0, 0, 200)
+MainPage.ScrollBarThickness = 3
+MainPage.Visible = true
+
+local ESPPage = Instance.new("ScrollingFrame")
+ESPPage.Parent = MainFrame
+ESPPage.BackgroundTransparency = 1
+ESPPage.Position = UDim2.new(0, 125, 0, 50)
+ESPPage.Size = UDim2.new(1, -135, 1, -60)
+ESPPage.CanvasSize = UDim2.new(0, 0, 0, 360)
+ESPPage.ScrollBarThickness = 3
+ESPPage.Visible = false
+
+TabMainBtn.MouseButton1Click:Connect(function()
+    MainPage.Visible = true
+    ESPPage.Visible = false
+    TabMainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabMainBtn.BackgroundColor3 = Color3.fromRGB(50, 2, 2)
+    TabEspBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    TabEspBtn.BackgroundColor3 = Color3.fromRGB(35, 2, 2)
+end)
+
+TabEspBtn.MouseButton1Click:Connect(function()
+    MainPage.Visible = false
+    ESPPage.Visible = true
+    TabEspBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabEspBtn.BackgroundColor3 = Color3.fromRGB(50, 2, 2)
+    TabMainBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+    TabMainBtn.BackgroundColor3 = Color3.fromRGB(35, 2, 2)
+end)
+
+local function createToggle(parent, text, yPos, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = parent
+    btn.BackgroundColor3 = Color3.fromRGB(45, 2, 2)
+    btn.Position = UDim2.new(0, 0, 0, yPos)
+    btn.Size = UDim2.new(1, -8, 0, 32)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.Text = "  " .. text .. " [OFF]"
+    btn.TextColor3 = Color3.fromRGB(190, 190, 190)
+    btn.TextSize = 13
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        if active then
+            btn.BackgroundColor3 = Color3.fromRGB(120, 15, 15)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Text = "  " .. text .. " [ON]"
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(45, 2, 2)
+            btn.TextColor3 = Color3.fromRGB(190, 190, 190)
+            btn.Text = "  " .. text .. " [OFF]"
+        end
+        task.spawn(function()
+            callback(active)
+        end)
+    end)
+end
+
+---------------------------------------------------------
+-- ФУНКЦИИ
+---------------------------------------------------------
+local speedConn = nil
+createToggle(MainPage, "Speed Boost", 0, function(state)
+    if state then
+        speedConn = RunService.RenderStepped:Connect(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = 21
+            end
+        end)
+    else
+        if speedConn then speedConn:Disconnect() end
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = 16
+        end
+    end
+end)
+
+createToggle(MainPage, "FullBright", 38, function(state)
+    if state then
+        Lighting.Ambient = Color3.new(1, 1, 1)
+        Lighting.Brightness = 2
+        Lighting.GlobalShadows = false
+    else
+        Lighting.Ambient = Color3.new(0, 0, 0)
+        Lighting.Brightness = 1
+        Lighting.GlobalShadows = true
+    end
+end)
+
+local screechConn = nil
+createToggle(MainPage, "Anti-Screech", 76, function(state)
+    if state then
+        screechConn = workspace.CurrentCamera.ChildAdded:Connect(function(child)
+            if child.Name == "Screech" then child:Destroy() end
+        end)
+    else
+        if screechConn then screechConn:Disconnect() end
+    end
+end)
+
+local function createESP(object, textName, color)
+    if not object:FindFirstChild("NexusESP") then
+        local hl = Instance.new("Highlight")
+        hl.Name = "NexusESP"
+        hl.Parent = object
+        hl.FillColor = color
+        hl.OutlineColor = Color3.new(1, 1, 1)
+        hl.FillTransparency = 0.5
+
+        local bill = Instance.new("BillboardGui")
+        bill.Name = "NexusESPText"
+        bill.Parent = object
+        bill.Size = UDim2.new(0, 100, 0, 30)
+        bill.StudsOffset = Vector3.new(0, 2, 0)
+        bill.AlwaysOnTop = true
+
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Parent = bill
+        textLabel.BackgroundTransparency = 1
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.Font = Enum.Font.SourceSansBold
+        textLabel.Text = textName
+        textLabel.TextColor3 = color
+        textLabel.TextSize = 13
+        textLabel.TextStrokeTransparency = 0.2
+    end
+end
+
+local function removeESP(object)
+    if object:FindFirstChild("NexusESP") then object.NexusESP:Destroy() end
+    if object:FindFirstChild("NexusESPText") then object.NexusESPText:Destroy() end
+end
+
+-- ESP переключатели
+local doorESP = false
+createToggle(ESPPage, "Door ESP", 0, function(state)
+    doorESP = state
+    task.spawn(function()
+        while doorESP do
+            local rooms = workspace:FindFirstChild("CurrentRooms")
+            if rooms then
+                for _, room in pairs(rooms:GetChildren()) do
+                    local doorPart = room:FindFirstChild("Door") and room.Door:FindFirstChild("Door") or room:FindFirstChild("Door")
+                    if doorPart then createESP(doorPart, "Door", Color3.fromRGB(0, 255, 100)) end
+                end
+            end
+            task.wait(1)
+        end
+        if not doorESP then
+            for _, v in pairs(workspace:GetDescendants()) do if v.Name == "Door" then removeESP(v) end end
+        end
+    end)
+end)
+
+local keyESP = false
+createToggle(ESPPage, "Key & Lock ESP", 38, function(state)
+    keyESP = state
+    task.spawn(function()
+        while keyESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Key" or v.Name == "KeyObtain" then createESP(v, "Key", Color3.fromRGB(255, 215, 0))
+                elseif v.Name == "Lock" then createESP(v, "Lock", Color3.fromRGB(255, 140, 0)) end
+            end
+            task.wait(1.5)
+        end
+        if not keyESP then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Key" or v.Name == "KeyObtain" or v.Name == "Lock" then removeESP(v) end
+            end
+        end
+    end)
+end)
+
+local itemESP = false
+createToggle(ESPPage, "Items ESP", 76, function(state)
+    itemESP = state
+    task.spawn(function()
+        while itemESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and (v.Name == "Flashlight" or v.Name == "Lighter" or v.Name == "Lockpick" or v.Name == "Vitamins" or v:FindFirstChild("Handle")) then
+                    if not v:IsDescendantOf(LocalPlayer.Character) then createESP(v, v.Name, Color3.fromRGB(0, 200, 255)) end
+                end
+            end
+            task.wait(2)
+        end
+        if not itemESP then
+            for _, v in pairs(workspace:GetDescendants()) do removeESP(v) end
+        end
+    end)
+end)
+
+local bookESP = false
+createToggle(ESPPage, "Books ESP", 114, function(state)
+    bookESP = state
+    task.spawn(function()
+        while bookESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Book" or v.Name == "LiveHintBook" then createESP(v, "Book", Color3.fromRGB(200, 100, 255)) end
+            end
+            task.wait(1)
+        end
+        if not bookESP then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Book" or v.Name == "LiveHintBook" then removeESP(v) end
+            end
+        end
+    end)
+end)
+
+local breakerESP = false
+createToggle(ESPPage, "Breakers / Fuses ESP", 152, function(state)
+    breakerESP = state
+    task.spawn(function()
+        while breakerESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "BreakerPole" or v.Name == "Fuse" or v.Name == "Breaker" then createESP(v, "Breaker", Color3.fromRGB(0, 255, 255)) end
+            end
+            task.wait(1)
+        end
+        if not breakerESP then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "BreakerPole" or v.Name == "Fuse" or v.Name == "Breaker" then removeESP(v) end
+            end
+        end
+    end)
+end)
+
+local trapESP = false
+createToggle(ESPPage, "Traps / Snares ESP", 190, function(state)
+    trapESP = state
+    task.spawn(function()
+        while trapESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Snare" or v.Name == "Trap" or v.Name == "Spike" then createESP(v, "Trap", Color3.fromRGB(255, 50, 50)) end
+            end
+            task.wait(1)
+        end
+        if not trapESP then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Snare" or v.Name == "Trap" or v.Name == "Spike" then removeESP(v) end
+            end
+        end
+    end)
+end)
+
+local coinESP = false
+createToggle(ESPPage, "Gold ESP", 228, function(state)
+    coinESP = state
+    task.spawn(function()
+        while coinESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Gold" or v.Name == "Coin" or v.Name == "CoinBag" or v.Name == "GoldPile" then createESP(v, "Gold", Color3.fromRGB(255, 230, 0)) end
+            end
+            task.wait(1.5)
+        end
+        if not coinESP then
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Gold" or v.Name == "Coin" or v.Name == "CoinBag" or v.Name == "GoldPile" then removeESP(v) end
+            end
+        end
+    end)
+end)
+
+local monsterESP = false
+createToggle(ESPPage, "Monster ESP", 266, function(state)
+    monsterESP = state
+    task.spawn(function()
+        while monsterESP do
+            for _, v in pairs(workspace:GetDescendants()) do
+                local n = v.Name
+                if n == "RushMoving" or n == "AmbushMoving" or n == "SeekMoving" or n == "FigureRig" or n == "Eyes" or n == "Halt" or n == "Glitch" or n == "Screech" or n == "A60" or n == "A120" then
+                    if v:IsA("Model") or v:IsA("BasePart") then createESP(v, n, Color3.fromRGB(255, 0, 0)) end
+                end
+            end
+            task.wait(0.3)
+        end
+        if not monsterESP then
+            for _, v in pairs(workspace:GetDescendants()) do
+                local n = v.Name
+                if n == "RushMoving" or n == "AmbushMoving" or n == "SeekMoving" or n == "FigureRig" or n == "Eyes" or n == "Halt" or n == "Glitch" or n == "Screech" or n == "A60" or n == "A120" then removeESP(v) end
+            end
+        end
+    end)
+end)
+
+print("Nexus Hub DOORS Fully Finished & Loaded!")
